@@ -1,0 +1,69 @@
+#!/bin/sh
+
+# Print my public IP address to standard output.
+# Specify the "-6" flag for IPv6.
+# Uses opendns.com DNS resolvers to resolve the (public) IP address of the
+# current host.
+# See <https://unix.stackexchange.com/a/81699>.
+
+# dependencies: dig
+
+usage() {
+    echo "usage: $0 [ -6 | --ipv6 ] [ -v | --verbose ]"
+}
+
+# command line parsing
+verbose=0
+ipv6=0
+
+for arg in "$@"; do
+    case "$arg" in
+        -6|--ipv6|--IPv6)
+          ipv6=1
+          ;;
+        -v|--verbose)
+          verbose=1
+          ;;
+        -h|--help)
+          usage
+          exit 0
+          ;;
+        *)
+          >&2 usage
+          exit 1
+          ;;
+    esac
+done
+
+log() {
+    if [ "$verbose" -eq 1 ]; then
+        >&2 echo "$@"
+    fi
+}
+
+# resolver1.opendns.com, resolver2..., etc.
+servers=""
+for i in $(seq 4); do
+    servers="$servers resolver$i.opendns.com"
+done
+
+dig_myip() {
+    # usage: dig_myip <DNS server>
+    if [ "$ipv6" -eq 1 ]; then
+        dig +timeout=1 +short -6 myip.opendns.com aaaa @$1
+    else
+        dig +timeout=1 +short myip.opendns.com @$1
+    fi
+}
+
+# Try servers until `dig` succeeds _and_ prints an IP.
+for server in $servers; do
+    log "trying server $server"
+    if ip=$(dig_myip $server) && [ -n "$ip" ]; then
+        echo $ip
+        exit 0
+    fi
+done
+
+>&2 echo 'None of the servers responded with an IP.'
+exit 2
