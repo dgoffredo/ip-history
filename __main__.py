@@ -1,6 +1,6 @@
 """ip-history
 
-Query the myip.opendns.com A and AAAA record from one of the opendns.com DNS
+Query the myip.opendns.com A and AAAA records from one of the opendns.com DNS
 resolvers and update a local SQLite database with the resulting values.
 
 myip.opendns.com resolves to the public IP address of the caller.
