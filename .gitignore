@@ -1,2 +1,4 @@
-/db
+/db.sqlite
+/log
 __pycache__/
+
